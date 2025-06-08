@@ -29,6 +29,15 @@
 			"max_tokens": 64000
 		}
 	],
+	"third-party": [
+		{
+			"id": "custom-model",
+			"swe_score": 0.5,
+			"cost_per_1m_tokens": { "input": 1.0, "output": 3.0 },
+			"allowed_roles": ["main", "fallback"],
+			"max_tokens": 8192
+		}
+	],
 	"openai": [
 		{
 			"id": "gpt-4o",

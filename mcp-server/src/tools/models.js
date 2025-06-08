@@ -55,7 +55,11 @@ export function registerModelsTool(server) {
 			ollama: z
 				.boolean()
 				.optional()
-				.describe('Indicates the set model ID is a custom Ollama model.')
+				.describe('Indicates the set model ID is a custom Ollama model.'),
+			thirdParty: z
+				.boolean()
+				.optional()
+				.describe('Indicates the set model ID is a custom third-party model.')
 		}),
 		execute: withNormalizedProjectRoot(async (args, { log, session }) => {
 			try {

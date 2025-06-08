@@ -62,7 +62,8 @@ const DEFAULTS = {
 		defaultPriority: 'medium',
 		projectName: 'Task Master',
 		ollamaBaseURL: 'http://localhost:11434/api',
-		bedrockBaseURL: 'https://bedrock.us-east-1.amazonaws.com'
+		bedrockBaseURL: 'https://bedrock.us-east-1.amazonaws.com',
+		thirdPartyBaseURL: null // Will be set via THIRD_BASE_URL environment variable
 	}
 };
 
@@ -388,6 +389,16 @@ function getBedrockBaseURL(explicitRoot = null) {
 	return getGlobalConfig(explicitRoot).bedrockBaseURL;
 }
 
+function getThirdPartyBaseURL(explicitRoot = null) {
+	// Check environment variable first, then fall back to config
+	const envBaseURL = resolveEnvVariable('THIRD_BASE_URL', null, explicitRoot);
+	if (envBaseURL) {
+		return envBaseURL;
+	}
+	// Fall back to config value
+	return getGlobalConfig(explicitRoot).thirdPartyBaseURL;
+}
+
 /**
  * Gets the Google Cloud project ID for Vertex AI from configuration
  * @param {string|null} explicitRoot - Optional explicit path to the project root.
@@ -493,7 +504,8 @@ function isApiKeySet(providerName, session = null, projectRoot = null) {
 		azure: 'AZURE_OPENAI_API_KEY',
 		openrouter: 'OPENROUTER_API_KEY',
 		xai: 'XAI_API_KEY',
-		vertex: 'GOOGLE_API_KEY' // Vertex uses the same key as Google
+		vertex: 'GOOGLE_API_KEY', // Vertex uses the same key as Google
+		'third-party': 'THIRD_API_KEY'
 		// Add other providers as needed
 	};
 
@@ -588,6 +600,10 @@ function getMcpApiKeyStatus(providerName, projectRoot = null) {
 			case 'vertex':
 				apiKeyToCheck = mcpEnv.GOOGLE_API_KEY; // Vertex uses Google API key
 				placeholderValue = 'YOUR_GOOGLE_API_KEY_HERE';
+				break;
+			case 'third-party':
+				apiKeyToCheck = mcpEnv.THIRD_API_KEY;
+				placeholderValue = 'YOUR_THIRD_API_KEY_HERE';
 				break;
 			default:
 				return false; // Unknown provider
@@ -786,6 +802,7 @@ export {
 	getOllamaBaseURL,
 	getAzureBaseURL,
 	getBedrockBaseURL,
+	getThirdPartyBaseURL,
 	getParametersForRole,
 	getUserId,
 	// API Key Checkers (still relevant)

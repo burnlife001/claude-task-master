@@ -23,6 +23,7 @@ import {
 	getOllamaBaseURL,
 	getAzureBaseURL,
 	getBedrockBaseURL,
+	getThirdPartyBaseURL,
 	getVertexProjectId,
 	getVertexLocation
 } from './config-manager.js';
@@ -39,7 +40,8 @@ import {
 	OllamaAIProvider,
 	BedrockAIProvider,
 	AzureProvider,
-	VertexAIProvider
+	VertexAIProvider,
+	ThirdPartyAIProvider
 } from '../../src/ai-providers/index.js';
 
 // Create provider instances
@@ -53,7 +55,8 @@ const PROVIDERS = {
 	ollama: new OllamaAIProvider(),
 	bedrock: new BedrockAIProvider(),
 	azure: new AzureProvider(),
-	vertex: new VertexAIProvider()
+	vertex: new VertexAIProvider(),
+	'third-party': new ThirdPartyAIProvider()
 };
 
 // Helper function to get cost for a specific model
@@ -172,7 +175,8 @@ function _resolveApiKey(providerName, session, projectRoot = null) {
 		xai: 'XAI_API_KEY',
 		ollama: 'OLLAMA_API_KEY',
 		bedrock: 'AWS_ACCESS_KEY_ID',
-		vertex: 'GOOGLE_API_KEY'
+		vertex: 'GOOGLE_API_KEY',
+		'third-party': 'THIRD_API_KEY'
 	};
 
 	const envVarName = keyMap[providerName];
@@ -415,6 +419,10 @@ async function _unifiedServiceRunner(serviceType, params) {
 				// For Bedrock, use the global Bedrock base URL if role-specific URL is not configured
 				baseURL = getBedrockBaseURL(effectiveProjectRoot);
 				log('debug', `Using global Bedrock base URL: ${baseURL}`);
+			} else if (providerName?.toLowerCase() === 'third-party' && !baseURL) {
+				// For third-party, use the global third-party base URL if role-specific URL is not configured
+				baseURL = getThirdPartyBaseURL(effectiveProjectRoot);
+				log('debug', `Using global third-party base URL: ${baseURL}`);
 			}
 
 			// Get AI parameters for the current role

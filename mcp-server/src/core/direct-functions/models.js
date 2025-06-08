@@ -31,16 +31,17 @@ export async function modelsDirect(args, log, context = {}) {
 	log.info(`Executing models_direct with args: ${JSON.stringify(args)}`);
 	log.info(`Using project root: ${projectRoot}`);
 
-	// Validate flags: cannot use both openrouter and ollama simultaneously
-	if (args.openrouter && args.ollama) {
+	// Validate flags: cannot use multiple provider flags simultaneously
+	const providerFlags = [args.openrouter, args.ollama, args.thirdParty].filter(Boolean);
+	if (providerFlags.length > 1) {
 		log.error(
-			'Error: Cannot use both openrouter and ollama flags simultaneously.'
+			'Error: Cannot use multiple provider flags (openrouter, ollama, thirdParty) simultaneously.'
 		);
 		return {
 			success: false,
 			error: {
 				code: 'INVALID_ARGS',
-				message: 'Cannot use both openrouter and ollama flags simultaneously.'
+				message: 'Cannot use multiple provider flags (openrouter, ollama, thirdParty) simultaneously.'
 			}
 		};
 	}
@@ -68,7 +69,9 @@ export async function modelsDirect(args, log, context = {}) {
 						? 'openrouter'
 						: args.ollama
 							? 'ollama'
-							: undefined // Pass hint
+							: args.thirdParty
+								? 'third-party'
+								: undefined // Pass hint
 				});
 			}
 
@@ -81,7 +84,9 @@ export async function modelsDirect(args, log, context = {}) {
 						? 'openrouter'
 						: args.ollama
 							? 'ollama'
-							: undefined // Pass hint
+							: args.thirdParty
+								? 'third-party'
+								: undefined // Pass hint
 				});
 			}
 
@@ -94,7 +99,9 @@ export async function modelsDirect(args, log, context = {}) {
 						? 'openrouter'
 						: args.ollama
 							? 'ollama'
-							: undefined // Pass hint
+							: args.thirdParty
+								? 'third-party'
+								: undefined // Pass hint
 				});
 			}
 

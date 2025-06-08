@@ -487,6 +487,11 @@ async function setModel(role, modelId, options = {}) {
 					determinedProvider = 'bedrock';
 					warningMessage = `Warning: Custom Bedrock model '${modelId}' set. Please ensure the model ID is valid and accessible in your AWS account.`;
 					report('warn', warningMessage);
+				} else if (providerHint === 'third-party') {
+					// Set provider without model validation since third-party models are managed externally
+					determinedProvider = 'third-party';
+					warningMessage = `Warning: Custom third-party model '${modelId}' set. Please ensure the model ID is valid and accessible through your third-party API endpoint.`;
+					report('warn', warningMessage);
 				} else {
 					// Invalid provider hint - should not happen
 					throw new Error(`Invalid provider hint received: ${providerHint}`);

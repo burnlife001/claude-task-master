@@ -256,6 +256,11 @@ async function runInteractiveSetup(projectRoot) {
 			value: '__CUSTOM_BEDROCK__'
 		};
 
+		const customThirdPartyOption = {
+			name: '* Custom third-party model', // Add third-party custom option
+			value: '__CUSTOM_THIRD_PARTY__'
+		};
+
 		let choices = [];
 		let defaultIndex = 0; // Default to 'Cancel'
 
@@ -303,6 +308,7 @@ async function runInteractiveSetup(projectRoot) {
 		commonPrefix.push(customOpenRouterOption);
 		commonPrefix.push(customOllamaOption);
 		commonPrefix.push(customBedrockOption);
+		commonPrefix.push(customThirdPartyOption);
 
 		const prefixLength = commonPrefix.length; // Initial prefix length
 
@@ -507,6 +513,41 @@ async function runInteractiveSetup(projectRoot) {
 			console.log(
 				chalk.blue(
 					`Custom Bedrock model "${modelIdToSet}" will be used. No validation performed.`
+				)
+			);
+		} else if (selectedValue === '__CUSTOM_THIRD_PARTY__') {
+			isCustomSelection = true;
+			const { customId } = await inquirer.prompt([
+				{
+					type: 'input',
+					name: 'customId',
+					message: `Enter the custom third-party Model ID for the ${role} role:`
+				}
+			]);
+			if (!customId) {
+				console.log(chalk.yellow('No custom ID entered. Skipping role.'));
+				return true; // Continue setup, but don't set this role
+			}
+			modelIdToSet = customId;
+			providerHint = 'third-party';
+
+			// Check if third-party environment variables exist
+			if (
+				!process.env.THIRD_API_KEY ||
+				!process.env.THIRD_BASE_URL
+			) {
+				console.error(
+					chalk.red(
+						'Error: THIRD_API_KEY and/or THIRD_BASE_URL environment variables are missing. Please set them before using custom third-party models.'
+					)
+				);
+				setupSuccess = false;
+				return true; // Continue setup, but mark as failed
+			}
+
+			console.log(
+				chalk.blue(
+					`Custom third-party model "${modelIdToSet}" will be used. No validation performed.`
 				)
 			);
 		} else if (
@@ -2379,6 +2420,10 @@ function registerCommands(programInstance) {
 			'--bedrock',
 			'Allow setting a custom Bedrock model ID (use with --set-*) '
 		)
+		.option(
+			'--third-party',
+			'Allow setting a custom third-party model ID (use with --set-*) '
+		)
 		.addHelpText(
 			'after',
 			`
@@ -2390,6 +2435,7 @@ Examples:
   $ task-master models --set-main my-custom-model --ollama  # Set custom Ollama model for main role
   $ task-master models --set-main anthropic.claude-3-sonnet-20240229-v1:0 --bedrock # Set custom Bedrock model for main role
   $ task-master models --set-main some/other-model --openrouter # Set custom OpenRouter model for main role
+  $ task-master models --set-main custom-model --third-party # Set custom third-party model for main role
   $ task-master models --setup                            # Run interactive setup`
 		)
 		.action(async (options) => {
@@ -2402,12 +2448,13 @@ Examples:
 			const providerFlags = [
 				options.openrouter,
 				options.ollama,
-				options.bedrock
+				options.bedrock,
+				options.thirdParty
 			].filter(Boolean).length;
 			if (providerFlags > 1) {
 				console.error(
 					chalk.red(
-						'Error: Cannot use multiple provider flags (--openrouter, --ollama, --bedrock) simultaneously.'
+						'Error: Cannot use multiple provider flags (--openrouter, --ollama, --bedrock, --third-party) simultaneously.'
 					)
 				);
 				process.exit(1);
@@ -2449,7 +2496,9 @@ Examples:
 								? 'ollama'
 								: options.bedrock
 									? 'bedrock'
-									: undefined
+									: options.thirdParty
+										? 'third-party'
+										: undefined
 					});
 					if (result.success) {
 						console.log(chalk.green(`✅ ${result.data.message}`));
@@ -2471,7 +2520,9 @@ Examples:
 								? 'ollama'
 								: options.bedrock
 									? 'bedrock'
-									: undefined
+									: options.thirdParty
+										? 'third-party'
+										: undefined
 					});
 					if (result.success) {
 						console.log(chalk.green(`✅ ${result.data.message}`));
@@ -2495,7 +2546,9 @@ Examples:
 								? 'ollama'
 								: options.bedrock
 									? 'bedrock'
-									: undefined
+									: options.thirdParty
+										? 'third-party'
+										: undefined
 					});
 					if (result.success) {
 						console.log(chalk.green(`✅ ${result.data.message}`));
